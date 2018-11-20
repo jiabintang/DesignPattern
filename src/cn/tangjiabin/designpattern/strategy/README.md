@@ -117,5 +117,5 @@ public class StrategyPatternDemo {
 ```  
   
   
-完整代码: [https://www.tangjiabin.cn](https://www.tangjiabin.cn)
+完整代码: [https://github.com/jiabintang/DesignPattern](https://github.com/jiabintang/DesignPattern)
 
