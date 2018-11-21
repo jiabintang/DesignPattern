@@ -15,7 +15,7 @@
 AbstractCharacter(角色)是抽象类，由具体的角色来继承，具体的角色包括国王（King）、皇后（Queen）和骑士（Knight）。而武器是接口，由具体武器来继承，所有实际的角色和武器都是具体类。
 任何角色如果想换武器，可以调用setWeapon（）方法。
 ![](http://image.tangjiabin.cn/design_pattern/strategy_pattern_uml.png)
-
+ 
 - 步骤一  
 创建一个抽象角色类
 ```
