@@ -14,66 +14,161 @@
 4. 需要在系统中创建一个触发链，A对象的行为将影响B对象，B对象的行为将影响C对象……，可以使用观察者模式创建一种链式触发机制。
 
 ### 实现
-
-
+创建一个主题（Subject）接口，被观察者（WeatherDate）实现主题接口。创建观察者接口以及具体实现类,当被观察者改变时，通知已注册的观察者。
 ![](http://image.tangjiabin.cn/design_pattern/observer_pattern_uml.png)
 
 - 步骤一  
-创建一个抽象角色类
+创建一个主题接口
 ```
-public abstract class AbstractCharacter {
+public interface Subject {
 
-    public WeaponBehavior weaponBehavior;
+    /**
+     * 注册观察者
+     * @param o 观察者
+     */
+    public void registerObserver(Observer o);
 
-    public void fight() {
-        weaponBehavior.useWeapon();
-    }
+    /**
+     * 移除观察者
+     * @param o 观察者
+     */
+    public void removeObsever(Observer o);
 
-    public void setWeapon(WeaponBehavior w) {
-        weaponBehavior = w;
-    }
-    
+    /**
+     * 通知观察者
+     */
+    public void notifyObserver();
 }
 
 ```
   
 - 步骤二  
-创建具体实现角色类  
+创建被观察者（天气信息）类  
 
 ```
-public class King extends AbstractCharacter {
+public class WeatherData implements Subject {
 
-    public King(){
-        weaponBehavior = new SwordBehavior();
+    /**
+     * 观察者集合
+     */
+    private List<Observer> observerList;
+    /**
+     * 温度
+     */
+    private float temperature;
+    /**
+     * 湿度
+     */
+    private float humidity;
+    /**
+     * 压力
+     */
+    private float pressure;
+
+
+    public WeatherData() {
+        observerList = new ArrayList<>();
     }
 
+    @Override
+    public void registerObserver(Observer o) {
+        observerList.add(o);
+    }
+
+    @Override
+    public void removeObsever(Observer o) {
+        int index = observerList.indexOf(o);
+        if (index > 0) {
+            observerList.remove(o);
+        }
+    }
+
+    @Override
+    public void notifyObserver() {
+        for (Observer observer : observerList) {
+            observer.update(temperature,humidity,pressure);
+        }
+    }
+
+    /**
+     * 设置测量值
+     * @param temperature 温度
+     * @param humidity 湿度
+     * @param pressure 压力
+     */
+    public void setMeasurements(float temperature,float humidity, float pressure){
+        this.temperature = temperature;
+        this.humidity = humidity;
+        this.pressure = pressure;
+        measurementsChanged();
+    }
+
+    /**
+     * 当信息改变通知观察者
+     */
+    public void measurementsChanged(){
+        notifyObserver();
+    }
 }
+
 
 ```  
   
 - 步骤三  
-创建武器行为接口  
+创建观察者接口  
 
 ```
-public interface WeaponBehavior {
-    
+public interface Observer {
     /**
-     * 使用武器
+     * 观察者更新接口
+     *
+     * 当气象值改变时，主题会把这些值当做方法参数，传递给观察者。
+     *
+     * @param temperature 温度
+     * @param humidity 湿度
+     * @param pressure 压力
      */
-    void useWeapon();
+    public void update(float temperature,float humidity,float pressure);
 }
+
+public interface DisplayElement {
+
+    /**
+     * 天气显示接口
+     */
+    public void display();
+}
+
 
 ```  
   
 - 步骤四  
-创建武器具体行为类  
+创建具体观察者（天气观察者）类  
 
 ```
-public class SwordBehavior implements WeaponBehavior {
+public class WeatherObserver implements Observer, DisplayElement {
+
+    private float temperature;
+    private float humidity;
+    private float pressure;
+    private Subject weatherData;
+
+    public WeatherObserver(Subject weatherData) {
+        this.weatherData = weatherData;
+        weatherData.registerObserver(this);
+    }
 
     @Override
-    public void useWeapon() {
-        System.out.println("挥舞宝剑。。。");
+    public void display() {
+        System.out.println(String.format("收到天气变化 温度：%s 湿度：%s 压力：%s",temperature,humidity,pressure));
+    }
+
+    @Override
+    public void update(float temperature, float humidity, float pressure) {
+        this.temperature = temperature;
+        this.humidity = humidity;
+        this.pressure = pressure;
+        display();
     }
 }
 
@@ -83,25 +178,17 @@ public class SwordBehavior implements WeaponBehavior {
 创建测试类
 
 ```
-public class StrategyPatternDemo {
+public class ObserverPatternDemo {
 
     public static void main(String[] args) {
-        AbstractCharacter character;
-
-        //创建国王角色
-        character = new King();
-        character.fight();
-        //战斗要求国王使用斧头
-        character.setWeapon(new AxeBehavior());
-        character.fight();
-
-        //创建皇后角色
-        character = new Queen();
-        character.fight();
-
-        //创建骑士角色
-        character = new Knight();
-        character.fight();
+        //创建天气数据类
+        WeatherData weatherData = new WeatherData();
+        //天气观察者注册
+        Observer weatherObserver = new WeatherObserver(weatherData);
+        //温度观察者注册
+        Observer temperatureObserver = new TemperatureObserver(weatherData);
+        //更新天气信息
+        weatherData.setMeasurements(16,40,33);
     }
 }
 
@@ -110,10 +197,8 @@ public class StrategyPatternDemo {
 - 步骤六  
 执行程序，输出结果  
 ```
-挥舞宝剑。。。
-斧头劈砍。。。
-射箭。。。
-斧头劈砍。。。
+收到天气变化 温度：16.0 湿度：40.0 压力：33.0
+收到温度变化：16.0
 
 ```  
   
